@@ -104,7 +104,10 @@
     "web1SubnetRef": "[concat(variables('web1VnetID'), '/subnets/', variables('vnet1Subnet1Name'))]",
     "web1StorageAccountContainerName": "vhds",
     "web1NicName": "[concat(parameters('web1Name'), 'NetworkInterface')]",
-    "web1PubIpName": "web1PubIp"
+    "web1PubIpName": "web1PubIp",
+    "ConfigUrl": "https://github.com/Merlus/azure-arm-templates/blob/master/kemp-loadbalancer-poc/dsc/web1.ps1.zip",
+    "configScript": "web1.ps1.zip",
+    "configFunction": "web1"
   },
   "resources": [
     {
@@ -477,7 +480,32 @@
             }
           ]
         }
-      }
+      },
+      "resources": [
+        {
+          "name": "[concat(parameters('web1Name'),'/web1dsc')]",
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2015-06-15",
+          "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', parameters('web1Name'))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.17",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "wmfVersion": "latest",
+              "configuration": {
+                "url": "[variables('ConfigUrl')]",
+                "script": "[variables('configScript')]",
+                "function": "[variables('ConfigFunction')]"
+              }
+            }
+          }
+        }
+      ]
     },
     {
       "name": "[variables('web1PubIpName')]",
