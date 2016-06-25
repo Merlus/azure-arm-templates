@@ -1,0 +1,525 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccount1Type": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_ZRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Premium_LRS"
+      ]
+    },
+    "loadmasterName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "loadmasterAdminUserName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "loadmasterAdminPassword": {
+      "type": "securestring"
+    },
+    "vnet1Name": {
+      "type": "string"
+    },
+    "loadmasterVersion": {
+      "type": "string",
+      "defaultValue": "basic-byol",
+      "allowedValues": [
+        "freeloadmaster",
+        "basic-byol"
+      ]
+    },
+    "availabilitySetName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "loadbalancerName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "publicIPAddressName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dnsNameforLBIP": {
+      "type": "string",
+      "minLength": 1
+    },
+      "web1Name": {
+          "type": "string",
+          "minLength": 1
+      },
+      "web1AdminUserName": {
+          "type": "string",
+          "minLength": 1
+      },
+      "web1AdminPassword": {
+          "type": "securestring"
+      },
+      "web1WindowsOSVersion": {
+          "type": "string",
+          "defaultValue": "2012-R2-Datacenter",
+          "allowedValues": [
+              "2008-R2-SP1",
+              "2012-Datacenter",
+              "2012-R2-Datacenter",
+              "Windows-Server-Technical-Preview"
+          ]
+      },
+      "webPubIpDnsName": {
+          "type": "string",
+          "minLength": 1
+      }
+  },
+  "variables": {
+    "vnet1Prefix": "192.168.1.0/24",
+    "vnet1Subnet1Name": "Subnet-1",
+    "vnet1Subnet1Prefix": "192.168.1.16/28",
+    "storageAccount1Name": "[concat('kemppoc', uniqueString(resourceGroup().id))]",
+    "loadmasterImagePublisher": "kemptech",
+    "loadmasterImageOffer": "vlm-azure",
+    "loadmasterOSDiskName": "loadmasterOSDisk",
+    "loadmasterVmSize": "Standard_A1",
+    "loadmasterVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'vnet1')]",
+    "loadmasterSubnetRef": "[concat(variables('loadmasterVnetID'), '/subnets/', variables('vnet1Subnet1Name'))]",
+    "loadmasterStorageAccountContainerName": "vhds",
+    "loadmasterNicName": "[concat(parameters('loadmasterName'), 'NetworkInterface')]",
+    "copyCount": 2,
+    "lbID": "[resourceId('Microsoft.Network/loadBalancers',parameters('loadbalancerName'))]",
+    "frontEndIPConfigID": "[concat(variables('lbID'), '/frontendIPConfigurations/LoadBalancerFrontEnd')]",
+    "publicIPAddressType": "Dynamic",
+    "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/BackendPool1')]",
+    "lbProbeID": "[concat(variables('lbID'),'/probes/tcpProbe')]",
+    "web1ImagePublisher": "MicrosoftWindowsServer",
+    "web1ImageOffer": "WindowsServer",
+    "web1OSDiskName": "web1OSDisk",
+    "web1VmSize": "Basic_A0",
+    "web1VnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet1Name'))]",
+    "web1SubnetRef": "[concat(variables('web1VnetID'), '/subnets/', variables('vnet1Subnet1Name'))]",
+    "web1StorageAccountContainerName": "vhds",
+    "web1NicName": "[concat(parameters('web1Name'), 'NetworkInterface')]",
+    "web1PubIpName": "web1PubIp"
+  },
+  "resources": [
+    {
+      "name": "[parameters('vnet1Name')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "vnet1"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('vnet1Prefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('vnet1Subnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('vnet1Subnet1Prefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('storageAccount1Name')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "storageAccount1"
+      },
+      "properties": {
+        "accountType": "[parameters('storageAccount1Type')]"
+      }
+    },
+    {
+      "name": "[concat(variables('loadmasterNicName'), copyIndex())]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "copy": {
+        "name": "nicCopy",
+        "count": "[variables('copyCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', 'vnet1')]",
+        "[concat('Microsoft.Network/loadBalancers/', parameters('loadbalancerName'))]"
+      ],
+      "tags": {
+        "displayName": "loadmasterNic[]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('loadmasterSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[variables('lbPoolID')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/SSH-Loadmaster', copyindex())]"
+                },
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/Manage-Loadmaster', copyindex())]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(parameters('loadmasterName'), copyIndex())]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "plan": {
+        "name": "[parameters('loadmasterVersion')]",
+        "publisher": "[variables('loadmasterImagePublisher')]",
+        "product": "[variables('loadmasterImageOffer')]"
+      },
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "copy": {
+        "name": "vmCopy",
+        "count": "[variables('copyCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccount1Name'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('loadmasterNicName'), copyIndex())]",
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('vnet1Name'))]",
+        "[concat('Microsoft.Compute/availabilitySets/', parameters('availabilitySetName'))]"
+      ],
+      "tags": {
+        "displayName": "loadmaster[]"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('availabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[variables('loadmasterVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(parameters('loadmasterName'), copyIndex())]",
+          "adminUsername": "[parameters('loadmasterAdminUsername')]",
+          "adminPassword": "[parameters('loadmasterAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('loadmasterImagePublisher')]",
+            "offer": "[variables('loadmasterImageOffer')]",
+            "sku": "[parameters('loadmasterVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "loadmasterOSDisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageAccount1Name'), '.blob.core.windows.net/', variables('loadmasterStorageAccountContainerName'), '/', variables('loadmasterOSDiskName'), copyIndex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('loadmasterNicName'), copyIndex()))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[parameters('availabilitySetName')]",
+      "type": "Microsoft.Compute/availabilitySets",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "availabilitySet"
+      },
+      "properties": {
+        "platformUpdateDomainCount": 5,
+        "platformFaultDomainCount": 3
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "name": "[parameters('loadbalancerName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LoadBalancerFrontEnd",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "BackendPool1"
+          }
+        ],
+        "inboundNatRules": [
+          {
+            "name": "SSH-Loadmaster0",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 50001,
+              "backendPort": 22,
+              "enableFloatingIP": false
+            }
+          },
+          {
+            "name": "SSH-Loadmaster1",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 50002,
+              "backendPort": 22,
+              "enableFloatingIP": false
+            }
+          },
+          {
+            "name": "Manage-Loadmaster0",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 8441,
+              "backendPort": 8443,
+              "enableFloatingIP": false
+            }
+          },
+          {
+            "name": "Manage-Loadmaster1",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 8442,
+              "backendPort": 8443,
+              "enableFloatingIP": false
+            }
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "HTTPS-LBRule",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "backendAddressPool": {
+                "id": "[variables('lbPoolID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 443,
+              "backendPort": 443,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 5,
+              "probe": {
+                "id": "[variables('lbProbeID')]"
+              }
+            }
+          },
+          {
+            "name": "HTTP-LBRule",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "backendAddressPool": {
+                "id": "[variables('lbPoolID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 80,
+              "backendPort": 80,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 5,
+              "probe": {
+                "id": "[variables('lbProbeID')]"
+              }
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "httpProbe",
+            "properties": {
+              "protocol": "http",
+              "port": 8444,
+              "intervalInSeconds": 5,
+              "numberOfProbes": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[parameters('publicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsNameforLBIP')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('web1NicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('vnet1Name'))]",
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('web1PubIpName'))]"
+      ],
+      "tags": {
+        "displayName": "web1Nic"
+      },
+      "properties": {
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups','web1Nsg')]"
+        },
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('web1SubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('web1PubIpName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('web1Name')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccount1Name'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('web1NicName'))]"
+      ],
+      "tags": {
+        "displayName": "web1"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('web1VmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('web1Name')]",
+          "adminUsername": "[parameters('web1AdminUsername')]",
+          "adminPassword": "[parameters('web1AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('web1ImagePublisher')]",
+            "offer": "[variables('web1ImageOffer')]",
+            "sku": "[parameters('web1WindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "web1OSDisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageAccount1Name'), '.blob.core.windows.net/', variables('web1StorageAccountContainerName'), '/', variables('web1OSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('web1NicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('web1PubIpName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "web1PubIp"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('webPubIpDnsName')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "web1Nsg",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-rdp",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    }
+  ],
+    "outputs": {
+    }
+}
