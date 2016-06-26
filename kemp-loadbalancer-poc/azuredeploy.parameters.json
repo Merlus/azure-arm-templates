@@ -24,13 +24,19 @@
           "value": "pubip1"
       },
       "dnsNameforLBIP": {
-          "value": "merkempload"
+          "value": ""
       },
       "web1Name": {
-          "value": "web1"
+          "value": ""
       },
       "web1AdminUserName": {
-          "value": "genadmin"
+          "value": ""
+      },
+      "loadmasterAdminPassword": {
+          "value": ""
+      },
+      "web1AdminPassword": {
+          "value": ""
       }
   }
 }

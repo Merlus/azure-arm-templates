@@ -71,10 +71,6 @@
               "2012-R2-Datacenter",
               "Windows-Server-Technical-Preview"
           ]
-      },
-      "webPubIpDnsName": {
-          "type": "string",
-          "minLength": 1
       }
   },
   "variables": {
@@ -95,18 +91,18 @@
     "frontEndIPConfigID": "[concat(variables('lbID'), '/frontendIPConfigurations/LoadBalancerFrontEnd')]",
     "publicIPAddressType": "Dynamic",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/BackendPool1')]",
-    "lbProbeID": "[concat(variables('lbID'),'/probes/tcpProbe')]",
+    "lbProbeID": "[concat(variables('lbID'),'/probes/HttpProbe')]",
     "web1ImagePublisher": "MicrosoftWindowsServer",
     "web1ImageOffer": "WindowsServer",
     "web1OSDiskName": "web1OSDisk",
-    "web1VmSize": "Basic_A0",
+    "web1VmSize": "Basic_A1",
     "web1VnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet1Name'))]",
     "web1SubnetRef": "[concat(variables('web1VnetID'), '/subnets/', variables('vnet1Subnet1Name'))]",
     "web1StorageAccountContainerName": "vhds",
     "web1NicName": "[concat(parameters('web1Name'), 'NetworkInterface')]",
     "web1PubIpName": "web1PubIp",
-    "ConfigUrl": "https://github.com/Merlus/azure-arm-templates/blob/master/kemp-loadbalancer-poc/dsc/web1.ps1.zip",
-    "configScript": "web1.ps1.zip",
+    "ConfigUrl": "https://github.com/Merlus/azure-arm-templates/raw/master/kemp-loadbalancer-poc/dsc/web1.ps1.zip",
+    "configScript": "web1.ps1",
     "configFunction": "web1"
   },
   "resources": [
@@ -385,6 +381,7 @@
             "properties": {
               "protocol": "http",
               "port": 8444,
+              "requestPath":  "/",
               "intervalInSeconds": 5,
               "numberOfProbes": 2
             }
@@ -517,10 +514,7 @@
         "displayName": "web1PubIp"
       },
       "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('webPubIpDnsName')]"
-        }
+        "publicIPAllocationMethod": "Dynamic"
       }
     },
     {
