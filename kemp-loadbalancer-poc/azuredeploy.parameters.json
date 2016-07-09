@@ -23,9 +23,6 @@
       "publicIPAddressName": {
           "value": "pubip1"
       },
-      "dnsNameforLBIP": {
-          "value": ""
-      },
       "web1Name": {
           "value": ""
       },
