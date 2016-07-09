@@ -47,10 +47,6 @@
       "type": "string",
       "minLength": 1
     },
-    "dnsNameforLBIP": {
-      "type": "string",
-      "minLength": 1
-    },
       "web1Name": {
           "type": "string",
           "minLength": 1
@@ -395,10 +391,7 @@
       "name": "[parameters('publicIPAddressName')]",
       "location": "[resourceGroup().location]",
       "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsNameforLBIP')]"
-        }
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
       }
     },
     {
