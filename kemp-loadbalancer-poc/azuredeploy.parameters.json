@@ -24,16 +24,16 @@
           "value": "pubip1"
       },
       "web1Name": {
-          "value": ""
+          "value": "web1"
       },
       "web1AdminUserName": {
-          "value": ""
+          "value": "webadmin"
       },
       "loadmasterAdminPassword": {
-          "value": ""
+          "value": "L0admasterP"
       },
       "web1AdminPassword": {
-          "value": ""
+          "value": "W3bpassword"
       }
   }
 }
