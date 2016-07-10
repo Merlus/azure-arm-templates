@@ -19,6 +19,7 @@
     },
     "loadmasterAdminUserName": {
       "type": "string",
+      "defaultValue": "bal",
       "minLength": 1
     },
     "loadmasterAdminPassword": {
