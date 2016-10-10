@@ -29,7 +29,3 @@
     }
 
 }
-
-firewall -outputpath .\
-
-Start-DscConfiguration -Path .\ -Wait -Force
