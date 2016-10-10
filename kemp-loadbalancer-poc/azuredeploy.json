@@ -19,6 +19,7 @@
     },
     "loadmasterAdminUserName": {
       "type": "string",
+      "defaultValue": "bal",
       "minLength": 1
     },
     "loadmasterAdminPassword": {
@@ -44,10 +45,6 @@
       "minLength": 1
     },
     "publicIPAddressName": {
-      "type": "string",
-      "minLength": 1
-    },
-    "dnsNameforLBIP": {
       "type": "string",
       "minLength": 1
     },
@@ -395,10 +392,7 @@
       "name": "[parameters('publicIPAddressName')]",
       "location": "[resourceGroup().location]",
       "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsNameforLBIP')]"
-        }
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
       }
     },
     {

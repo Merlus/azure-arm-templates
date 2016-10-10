@@ -23,14 +23,11 @@
       "publicIPAddressName": {
           "value": "pubip1"
       },
-      "dnsNameforLBIP": {
-          "value": ""
-      },
       "web1Name": {
-          "value": ""
+          "value": "web1"
       },
       "web1AdminUserName": {
-          "value": ""
+          "value": "webadmin"
       },
       "loadmasterAdminPassword": {
           "value": ""
