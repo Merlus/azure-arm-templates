@@ -24,7 +24,8 @@
             Action = 'Allow'
             Profile = 'Domain,Private,Public'
             Description = 'Allow Ping In'
-            IcmpType =  '0'
+            Protocol =  'ICMPv4'    
+            IcmpType =  '8'
         }
     }
 
