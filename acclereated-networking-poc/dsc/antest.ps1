@@ -1,7 +1,6 @@
 ﻿configuration antest
 {
     Import-DscResource -ModuleName xNetworking -ModuleVersion 2.12.0.0
-    Invoke-WebRequest -Uri "http://www.contoso.com" -OutFile "C:\path\file"
     node localhost
     {
         xFirewall smb
