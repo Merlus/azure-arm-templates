@@ -1,8 +1,8 @@
-Deploy proof of concept Kemp Loadmaster HA pair with Web server.
+Deploy proof of concept environment to test Azure Accelerated Networking
 
-This template deploys Free or BYOL Trial edition only and is for use for testing.
+Currently it is a Preview feature, and you must register for the preview https://azure.microsoft.com/en-gb/documentation/articles/virtual-network-accelerated-networking-powershell/
 
-You must enable programmatic deployment of the appliance within the Azure portal first.
+Make sure to delete the test environment after you have finished since D15v2 VMs that are currently the only SKU available will end up being costly if left running.
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMerlus%2Fazure-arm-templates%2Fmaster%2Faccelerated-networking-poc%2Fazuredeploy.json" target="_blank">
 <img src="http://azuredeploy.net/deploybutton.png"/>
