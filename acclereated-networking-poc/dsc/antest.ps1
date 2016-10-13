@@ -36,7 +36,7 @@
             Action = 'Allow'
             Profile = 'Domain,Private,Public'
             Description = 'Allow iperf In'
-            Localport = '50050'
+            Localport = '5201'
             Protocol = 'TCP'
             RemoteAddress = 'Any'
         }  
