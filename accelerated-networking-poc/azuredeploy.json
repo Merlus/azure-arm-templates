@@ -68,7 +68,7 @@
     "frontEndIPConfigID": "[concat(variables('lbID'), '/frontendIPConfigurations/LoadBalancerFrontEnd')]",
     "pubIpName": "pubip1",
     "availabilitySetName": "as1",
-    "configUrl": "https://github.com/Merlus/azure-arm-templates/raw/master/acclereated-networking-poc/dsc/antest.ps1.zip",
+    "configUrl": "https://github.com/Merlus/azure-arm-templates/raw/master/accelerated-networking-poc/dsc/antest.ps1.zip",
     "configScript": "antest.ps1",
     "configFunction":  "antest"
   },
