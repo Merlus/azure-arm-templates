@@ -28,13 +28,13 @@
         }
         xFirewall iperf
         {
-            Name = 'Allow iperf IN'
+            Name = 'Allow ntttcp IN'
             Enabled = 'True'
             Direction = 'Inbound'
             Action = 'Allow'
             Profile = 'Domain,Private,Public'
-            Description = 'Allow iperf In'
-            Localport = '50050'
+            Description = 'Allow ntttcp In'
+            Localport = '5001-6000'
             Protocol = 'TCP'
             RemoteAddress = 'Any'
         }        
