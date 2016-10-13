@@ -1,0 +1,21 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "testServerName": {
+            "value": "testserver"
+        },
+        "testServerAdminUserName": {
+            "value": ""
+        },
+        "storageAccount1Name": {
+            "value": ""
+        },
+        "testServerVmSize": {
+            "value": "Standard_D15_v2"
+        },
+        "location": {
+            "value": "WestCentralUS"
+        }
+    }
+}
