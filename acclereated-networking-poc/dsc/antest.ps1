@@ -27,6 +27,19 @@
             Protocol =  'ICMPv4'    
             IcmpType =  '8'
         }
+
+        xFirewall iperf
+        {
+            Name = 'Allow iperf IN'
+            Enabled = 'True'
+            Direction = 'Inbound'
+            Action = 'Allow'
+            Profile = 'Domain,Private,Public'
+            Description = 'Allow iperf In'
+            Localport = '50050'
+            Protocol = 'TCP'
+            RemoteAddress = 'Any'
+        }  
     }
 
 }
